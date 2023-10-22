@@ -11,6 +11,7 @@ namespace CandiceAIforGames.AI
         AgressiveRanged,
         Coward,
         Wander,
+        PatrolAndAttack
     }
     public class CandiceBehaviorTreeMono : MonoBehaviour
     {
@@ -32,6 +33,7 @@ namespace CandiceAIforGames.AI
 
         private CandiceBehaviorSequence wanderSequence;
         private CandiceBehaviorSequence fleeSequence;
+        private CandiceBehaviorSequence wayPointPatrolSequence;
 
         private CandiceBehaviorAction rangeAttackNode;
         private CandiceBehaviorAction moveNode;
@@ -57,6 +59,7 @@ namespace CandiceAIforGames.AI
         private CandiceBehaviorSelector enemyDetctedSelector;
         private CandiceBehaviorAction fleeNode;
         private CandiceBehaviorAction wanderNode;
+        private CandiceBehaviorAction waypointPatrolNode;
 
         public SelectedBehaviorTree SelectedBehaviorTree { get => selectedBehaviorTree; set => selectedBehaviorTree = value; }
         private SelectedBehaviorTree prevSelectedBT = SelectedBehaviorTree.AgressiveMelee;
@@ -102,6 +105,10 @@ namespace CandiceAIforGames.AI
                 case SelectedBehaviorTree.Wander:
                     prevSelectedBT = SelectedBehaviorTree.Wander;
                     WanderAI();
+                    break;
+                case SelectedBehaviorTree.PatrolAndAttack:
+                    prevSelectedBT = SelectedBehaviorTree.PatrolAndAttack;
+                    PatrolAndAttackAI();
                     break;
             }
         }
@@ -229,7 +236,35 @@ namespace CandiceAIforGames.AI
             wanderSequence.SetNodes(new List<CandiceBehaviorNode> { wanderNode, AvoidObstaclesNode, moveNode });
             (rootNode as CandiceBehaviorSequence).SetNodes(new List<CandiceBehaviorNode> { wanderSequence });
         }
+        private void PatrolAndAttackAI()
+        {
+            Debug.Log("Doing Wander And Attack");
+            ScanForObjectsNode = new CandiceBehaviorAction(CandiceDefaultBehaviors.ScanForObjects, rootNode);
+            AvoidObstaclesNode = new CandiceBehaviorAction(CandiceDefaultBehaviors.AvoidObstacles, rootNode);
+            CandicePathfindNode = new CandiceBehaviorAction(CandiceDefaultBehaviors.CandicePathfind, rootNode);
+            canSeeEnemyNode = new CandiceBehaviorAction(CandiceDefaultBehaviors.EnemyDetected, rootNode);
+            lookAtNode = new CandiceBehaviorAction(CandiceDefaultBehaviors.LookAt, rootNode);
+            rotateToNode = new CandiceBehaviorAction(CandiceDefaultBehaviors.RotateTo, rootNode);
+            attackNode = new CandiceBehaviorAction(CandiceDefaultBehaviors.AttackMelee, rootNode);
+            rangeAttackNode = new CandiceBehaviorAction(CandiceDefaultBehaviors.AttackRange, rootNode);
+            moveNode = new CandiceBehaviorAction(CandiceDefaultBehaviors.MoveForwardWithSlopeAlignment, rootNode);
+            withinAttackRange = new CandiceBehaviorAction(CandiceDefaultBehaviors.WithinAttackRange, rootNode);
 
+
+            attackSequence = new CandiceBehaviorSequence();
+            attackSequence.SetNodes(new List<CandiceBehaviorNode> { withinAttackRange, lookAtNode, attackNode });
+            followSequence = new CandiceBehaviorSequence();
+            followSequence.SetNodes(new List<CandiceBehaviorNode> { AvoidObstaclesNode, moveNode });
+            attackOrChaseSelector = new CandiceBehaviorSelector();
+            attackOrChaseSelector.SetNodes(new List<CandiceBehaviorNode> { attackSequence, followSequence });
+
+            waypointPatrolNode = new CandiceBehaviorAction(CandiceDefaultBehaviors.WaypointPatrol, rootNode);
+            wayPointPatrolSequence = new CandiceBehaviorSequence();
+            wayPointPatrolSequence.SetNodes(new List<CandiceBehaviorNode> { ScanForObjectsNode, waypointPatrolNode, AvoidObstaclesNode, moveNode });
+
+            
+            (rootNode as CandiceBehaviorSequence).SetNodes(new List<CandiceBehaviorNode> { ScanForObjectsNode, wayPointPatrolSequence, canSeeEnemyNode, attackOrChaseSelector });
+        }
     }
 }
 

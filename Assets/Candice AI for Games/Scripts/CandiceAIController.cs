@@ -767,22 +767,29 @@ namespace CandiceAIforGames.AI
         public void WaypointPatrol()
         {
             bool _pointReached = false;
-            if (Vector3.Distance(transform.position, movePoint) < 3f)
-            {
+            if (PlayerDetected) {
                 _pointReached = true;
+
+                mainTarget = player;
+                movePoint = player.transform.position;
+            } else {
+                if (Vector3.Distance(transform.position, movePoint) < 3f)
+                {
+                    _pointReached = true;
+                }
+                if (waypoint == null)
+                {
+                    Debug.LogError("No waypoint assigned.");
+                    return;
+                }
+                if (_pointReached)
+                {
+                    waypoint = waypoint.nextWaypoint;
+                    _pointReached = false;
+                }
+                mainTarget = waypoint.gameObject;
+                movePoint = waypoint.GetPosition();
             }
-            if (waypoint == null)
-            {
-                Debug.LogError("No waypoint assigned.");
-                return;
-            }
-            if (_pointReached)
-            {
-                waypoint = waypoint.nextWaypoint;
-                _pointReached = false;
-            }
-            mainTarget = waypoint.gameObject;
-            movePoint = waypoint.GetPosition();
         }
 
 

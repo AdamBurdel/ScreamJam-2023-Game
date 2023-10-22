@@ -9,6 +9,7 @@ TagManager:
   - PatrolPoint
   - Enemy
   - Door
+  - Waypoint
   layers:
   - Default
   - TransparentFX
