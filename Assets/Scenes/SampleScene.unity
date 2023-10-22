@@ -999,7 +999,7 @@ MonoBehaviour:
   resourceTarget: {fileID: 0}
   attackDamage: 3
   attacksPerSecond: 1
-  attackRange: 2
+  attackRange: 5
   damageAngle: 45
   attackType: 0
   projectile: {fileID: 0}
